@@ -66,10 +66,11 @@ public_users.get('/review/:isbn',function (req, res) {
     const isbn = req.params.isbn;
 
     if(books[isbn]){
-        res.status(200).send(books[isbn].review);
+        res.status(200).send(books[isbn].reviews);
     } else {
         res.status(404).send(`Book with isbn ${isbn} not found!`);
     }
 });
+
 
 module.exports.general = public_users;

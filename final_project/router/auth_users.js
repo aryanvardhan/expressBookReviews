@@ -74,7 +74,7 @@ regd_users.post("/login", (req,res) => {
         accessToken,
         username
     };
-    res.status(200).send("user logged in successfully");
+    res.status(200).send(`user ${username} logged in successfully`);
 });
 
 
@@ -103,6 +103,24 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
         books[isbn].reviews[username].review = newReviewText;
         res.status(201).send(`Review by ${username} successfully modified`); 
     }
+});
+
+// Delete book review
+regd_users.delete('/auth/review/:isbn', (req,res) => {
+    const isbn = req.params.isbn;
+    const username = req.session.authorization.username;
+
+    if(!books[isbn]){
+        res.status(404).send(`Book with isbn ${isbn} not found!`);
+    }
+
+    if (!books[isbn].reviews[username]){
+        res.status(400).send(`Error! User ${username} has not posted a review for this book!`);
+    }
+
+    delete books[isbn].reviews[username];
+    res.status(200).send(`User ${username} successfully deleted review`);
+
 });
 
 module.exports.authenticated = regd_users;
