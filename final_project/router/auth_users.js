@@ -5,24 +5,104 @@ const regd_users = express.Router();
 
 let users = [];
 
-const isValid = (username)=>{ //returns boolean
 //write code to check is the username is valid
+const isValid = (username)=>{ //returns boolean
+    let logUser = users.find((user) => user.username === username);
+    
+    if (logUser){
+       return true;
+    } else {
+        return false;
+    }
 }
 
-const authenticatedUser = (username,password)=>{ //returns boolean
 //write code to check if username and password match the one we have in records.
+const authenticatedUser = (username,password)=>{ //returns boolean
+    let logUser = users.find((user) => user.username === username);
+    
+    if (logUser.password === password){
+        return true;
+    } else {
+        return false;
+    }
 }
+
+//code to register users
+regd_users.post("/register", (req,res) => {
+    const {username, password} = req.body;
+
+    if(!username || !password) {
+        res.status(400).send("Error! Either username or password not provided!");
+    }
+
+    //test if username is already taken
+    users.forEach((user) => {
+        if(user.username === username){
+            res.status(400).send("Error! username already taken!");
+        }
+    });
+
+    let newUser = {
+        username,
+        password
+    }
+
+    users.push(newUser);
+    res.status(201).send(`User with username ${username} successfully registered`);
+    
+});
+
 
 //only registered users can login
 regd_users.post("/login", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const {username, password} = req.body;
+
+    if(!username || !password){
+        res.status(400).send("Error! Either username or password not provided!");
+    }
+
+    if (!isValid(username)){
+        res.status(400).send(`Error! User with username ${username} not found!`)
+    }
+
+    if (!authenticatedUser(username,password)){
+        res.status(400).send("Error! Invalid Login. Check username and password");
+    }    
+
+    let accessToken = jwt.sign({data: password}, "access");
+    req.session.authorization = {
+        accessToken,
+        username
+    };
+    res.status(200).send("user logged in successfully");
 });
 
-// Add a book review
+
+// Add or modify a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const isbn = req.params.isbn;
+    const newReviewText = req.query.review;
+    let username = req.session.authorization.username;
+
+    if(!books[isbn]){
+        res.status(404).send(`Book with isbn ${isbn} not found!`);
+    }
+
+    if(!newReviewText){
+        res.status(400).send("Error! review not given");
+    }
+
+    if (!books[isbn].reviews[username]){
+        let newUserReview = {
+            review: newReviewText
+        }
+
+        books[isbn].reviews[username] = newUserReview;
+        res.status(201).send(`Review by ${username} successfully added`);
+    } else {
+        books[isbn].reviews[username].review = newReviewText;
+        res.status(201).send(`Review by ${username} successfully modified`); 
+    }
 });
 
 module.exports.authenticated = regd_users;
