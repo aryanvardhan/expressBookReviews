@@ -27,31 +27,6 @@ const authenticatedUser = (username,password)=>{ //returns boolean
     }
 }
 
-//code to register users
-regd_users.post("/register", (req,res) => {
-    const {username, password} = req.body;
-
-    if(!username || !password) {
-        res.status(400).send("Error! Either username or password not provided!");
-    }
-
-    //test if username is already taken
-    users.forEach((user) => {
-        if(user.username === username){
-            res.status(400).send("Error! username already taken!");
-        }
-    });
-
-    let newUser = {
-        username,
-        password
-    }
-
-    users.push(newUser);
-    res.status(201).send(`User with username ${username} successfully registered`);
-    
-});
-
 
 //only registered users can login
 regd_users.post("/login", (req,res) => {
